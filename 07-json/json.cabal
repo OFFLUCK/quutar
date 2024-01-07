@@ -1,0 +1,42 @@
+cabal-version: 2.2
+
+name: json
+version: 2020
+
+build-type: Simple
+
+common language
+  build-depends: base, text
+  default-language: Haskell2010
+
+library
+  import: language
+  build-depends:
+    aeson,
+    lens,
+    monad-logger,
+    persistent, persistent-sqlite, persistent-template,
+    resourcet,
+    time,
+    transformers,
+    wreq,
+  exposed-modules: Auction Telegram
+  other-modules: Database
+  hs-source-dirs: lib
+
+executable bot
+  import: language
+  build-depends: json
+  hs-source-dirs: bot
+  main-is: Main.hs
+
+test-suite test
+  import: language
+  build-depends:
+    -- global
+    containers, filepath, hedgehog, tasty, tasty-hedgehog, tasty-th, temporary,
+    -- package
+    json,
+  hs-source-dirs: test
+  main-is: Test.hs
+  type: exitcode-stdio-1.0

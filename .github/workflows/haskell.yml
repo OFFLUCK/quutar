@@ -7,13 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  compile:
-    ghc
-      -Wall -Werror
-      -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns
-        -Wredundant-constraints
-      -Wwarn=missing-signatures -Wwarn=type-defaults -Wwarn=unused-top-binds
-      -Wno-unticked-promoted-constructors
+  TASTY_TIMEOUT: 10s
 
 jobs:
   build:
@@ -23,9 +17,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-haskell@v1
-      # with:
-      #   ghc-version: '8.8.4'
+      with:
+        ghc-version: '8.8.4'
       #   cabal-version: '3.2'
+    - name: Install GL for 08-game
+      run: sudo apt-get install libgl-dev libglu1-mesa-dev
 
     - name: Cache
       uses: actions/cache@v1
@@ -34,12 +30,24 @@ jobs:
       with:
         path: ~/.stack
         key:
-          ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/stack.yaml') }}
-        # -${{ hashFiles('**/*.cabal') }}
+          ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/stack.yaml') }}-${{ hashFiles('**/*.cabal') }}
         restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/stack.yaml') }}
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+
+    - {name: Compile task 01-intro, run: .test/ghc 01-intro/*.hs}
+    - {name: Compile task 02-types, run: .test/ghc 02-types/*.hs}
+    - {name: Run tests in task 03-testing, run: .test/stack-test 03-testing}
+    - {name: Run tests in task 04-testing, run: .test/stack-test 04-testing}
+    - {name: Run tests in task 05-web, run: .test/stack-test 05-web}
+    - {name: Run tests in task 06-parsing, run: .test/stack-test 06-parsing}
+    - {name: Run tests in task 07-json, run: .test/stack-test 07-json}
+    - {name: Run tests in task 08-game, run: .test/stack-test 08-game}
+    - {name: Run tests in task 09-compiler, run: .test/stack-test 09-compiler}
+    - name: Run tests in task 09-compiler-py
+      run: .test/stack-test 09-compiler-py
 
     # - name: Install stack
     #   run:
@@ -58,6 +66,3 @@ jobs:
     #   run: stack build
     # - name: Run tests
     #   run: stack test
-
-    - {name: Compile task 01, run: $compile 01-intro/*.hs}
-    - {name: Compile task 02, run: $compile 02-types/*.hs}
